@@ -14,7 +14,7 @@ COPY controllers/ controllers/
 COPY internal/ internal/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -mod=vendor -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -mod=vendor -a -o /tmp/manager main.go
 
 #####################################################################################################
 # Build the imager binary
@@ -33,11 +33,11 @@ COPY ibu-imager/cmd/ cmd/
 COPY ibu-imager/internal/ internal/
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -mod=vendor -a -o ibu-imager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -mod=vendor -a -o /tmp/ibu-imager main.go
 
 # Download crio CLI
 RUN curl -sL https://github.com/kubernetes-sigs/cri-tools/releases/download/$CRIO_VERSION/crictl-$CRIO_VERSION-linux-amd64.tar.gz \
-        | tar xvzf - -C . && chmod +x ./crictl
+        | tar xvzf - -C /tmp && chmod +x /tmp/crictl
 
 #####################################################################################################
 # Use distroless as minimal base image to package the manager binary
@@ -51,10 +51,10 @@ RUN yum -y install jq && \
 
 WORKDIR /
 
-COPY --from=builder /workspace/manager .
+COPY --from=builder /tmp/manager .
 
-COPY --from=imager /workspace/ibu-imager .
-COPY --from=imager /workspace/crictl /usr/bin/
+COPY --from=imager /tmp/ibu-imager .
+COPY --from=imager /tmp/crictl /usr/bin/
 COPY ibu-imager/installation_configuration_files/ installation_configuration_files/
 
 ENTRYPOINT ["/manager"]
