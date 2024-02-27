@@ -21,12 +21,12 @@ xfs_growfs ${installation_disk}4
 # Creating and mounting shared /var/lib/containers
 if lsattr -d /mnt/ | cut -d ' ' -f 1 | grep i; then
     chattr -i /mnt/
-    mkdir -p /mnt/sysroot/containers
+    mkdir -p /mnt/containers
     chattr +i /mnt/
 else
-    mkdir -p /mnt/sysroot/containers
+    mkdir -p /mnt/containers
 fi
-mount -o bind /mnt/sysroot/containers /var/lib/containers
+mount -o bind /mnt/containers /var/lib/containers
 
 additional_flags=""
 if [ -n "${PRECACHE_DISABLED}" ]; then
