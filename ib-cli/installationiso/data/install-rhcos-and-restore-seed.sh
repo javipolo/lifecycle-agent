@@ -11,26 +11,28 @@ extra_partition_number=5
 extra_partition_label=varlibcontainers
 create_extra_partition=true
 
+installation_disk_realpath=$(realpath $installation_disk)
+
 [[ "$extra_partition_start" == "use_directory" ]] && create_extra_partition="false"
 
 authfile=${AUTH_FILE:-"/var/tmp/backup-secret.json"}
 pull_secret=${PULL_SECRET_FILE:-"/var/tmp/pull-secret.json"}
 
-coreos-installer install ${installation_disk}
+coreos-installer install ${installation_disk_realpath}
 
 if [[ "$create_extra_partition" == "true" ]]; then
     # Create new partition for /var/lib/containers
-    sfdisk ${installation_disk} <<< write
-    sgdisk --new $extra_partition_number:$extra_partition_start --change-name $extra_partition_number:$extra_partition_label ${installation_disk}
-    mkfs.xfs -f ${installation_disk}$extra_partition_number
+    sfdisk ${installation_disk_realpath} <<< write
+    sgdisk --new $extra_partition_number:$extra_partition_start --change-name $extra_partition_number:$extra_partition_label ${installation_disk_realpath}
+    mkfs.xfs -f ${installation_disk_realpath}$extra_partition_number
 fi
 
 
 # We need to grow the partition. Coreos-installer leaves a small partition
-growpart ${installation_disk} 4
+growpart ${installation_disk_realpath} 4
 mount /dev/disk/by-partlabel/root /mnt
 mount /dev/disk/by-partlabel/boot /mnt/boot
-xfs_growfs ${installation_disk}4
+xfs_growfs ${installation_disk_realpath}4
 
 if [[ "$create_extra_partition" == "true" ]]; then
     # Mount extra partition in /var/lib/containers
